@@ -1,8 +1,21 @@
 import os
 import subprocess
+from meta.decorators import APIError
+
 base_dir = "./"
 dir_work = "./submission_code/"
 
+api_error_dictionary = {
+    1001: "内容不存在",
+}
+
+
+# APIError 只写error code
+def return_api_error(code, msg=''):
+    if msg:
+        raise APIError(code=code, msg=msg)
+    else:
+        raise APIError(code=code, msg=api_error_dictionary[code])
 
 def compile_code(file_name):
     # build_cmd = {
@@ -28,7 +41,7 @@ def run_code(ts, file_name):
         for t in ts:
             rc, out = subprocess.getstatusoutput(file_path+' '+t[0])
             if out != t[1]:
-                return {t[0]: [t[1], out]} # [should be, but get]
+                return {t[0]: [t[1], out]} # {input: [should be, but get]}
 
         return None
 

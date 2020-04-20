@@ -2,7 +2,7 @@ from django.db import models
 
 
 # Create your models here.
-class PType(models.Model):
+class Tag(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = '试题类型'
 
@@ -15,14 +15,35 @@ class Problem(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = '试题'
 
-    type = models.ForeignKey(PType, on_delete=models.CASCADE, blank=True)
-    name = models.CharField(max_length=100, default='', blank=True)
+    title = models.CharField(max_length=100, default='', blank=True)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE, blank=True)
+    difficulty = models.CharField(max_length=50, default='', blank=True)
     content = models.TextField(default='', blank=True)
     deadline = models.DateTimeField(blank=True, null=True, default=None)
 
     create_time = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
+    @property
+    def json(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'tag': self.tag.name,
+            'difficulty': self.difficulty,
+            'content': self.content,
+            'deadline': self.deadline,
+            'create_time': self.create_time
+        }
+
+    @property
+    def list_view(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'tag': self.tag.name,
+            'difficulty': self.difficulty
+        }
 
 class Testcase(models.Model):
     class Meta:
@@ -92,3 +113,30 @@ class Submission(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
 
     objects = models.Manager()
+
+    @property
+    def json(self):
+        return {
+            'id': self.id,
+            'problem': self.problem.json,
+            'code': self.code,
+            'if_compile': self.if_compile,
+            'compile_error': self.compile_error,
+            'if_run': self.if_run,
+            'run_error': self.run_error,
+            'run_seconds': self.run_seconds,
+            'memory_used': self.memory_used,
+            'create_time': self.create_time
+        }
+
+
+    @property
+    def list_view(self):
+        return {
+            'id': self.id,
+            'problem': [self.problem.id, self.problem.title], # return id, title of problem
+            'if_compile': self.if_compile,
+            'if_run': self.if_run,
+            'create_time': self.create_time,
+            'run_seconds': self.run_seconds
+        }

@@ -4,8 +4,12 @@ from .utils import *
 from .models import *
 from meta.decorators import api, APIError, comments, errors, params, returns
 
+"""
+判题模块
+"""
 @api
-def submission(user_id, problem_id, code):
+def submit(user_id, problem_id, code):
+    # TODO 校验user_id
     # 找到该学生和该题
     student = Student.objects.get(id=user_id)
     problem = Problem.objects.get(id=problem_id)
@@ -55,3 +59,46 @@ def submission(user_id, problem_id, code):
 
     # 返回结果
     return result
+
+
+@api
+def problem_list(user_id, tag=''):
+    # TODO: 校验user_id
+    if not tag:
+        p_list = Problem.objects.all()
+    else:
+        t = Tag.objects.get(name=tag)
+        p_list = Problem.objects.filter(tag=t)
+
+    return [p.list_view for p in p_list]
+
+
+@api
+def problem(user_id, problem_id):
+    # TODO: 校验user_id
+    try:
+        p = Problem.objects.get(id=problem_id)
+    except Exception as e:
+        return_api_error(1001, str(e))
+
+    return p.json
+
+@api
+def submission_list(user_id):
+    student = Student.objects.get(id=user_id)
+    submissions = Submission.objects.filter(student=student)
+
+    return [subm.list_view for subm in submissions]
+
+@api
+def submission(user_id, submission_id):
+    student = Student.objects.get(id=user_id)
+    try:
+        subm = Submission.objects.get(id=submission_id, student=student)
+    except Exception as e:
+        return_api_error(1001, str(e))
+
+    if subm:
+        return subm.json
+    else:
+        return_api_error(1001)
