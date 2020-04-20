@@ -20,11 +20,18 @@ def compile_code(file_name):
 
     raise Exception(err)
 
-def run_code(file_name):
+def run_code(ts, file_name):
+    # 依次运行每一个测试用例，对比输入输出
+    # 一旦发现输入输出不同则退出循环，记录提交记录，返回错误的输出和应有输出
     file_path = os.path.join(dir_work, file_name)
     if os.path.exists(file_path):
-        rc, out = subprocess.getstatusoutput(file_path)
-        return out
+        for t in ts:
+            rc, out = subprocess.getstatusoutput(file_path+' '+t[0])
+            if out != t[1]:
+                return {t[0]: [t[1], out]} # [should be, but get]
+
+        return None
+
 
 
 # if __name__ == '__main__':

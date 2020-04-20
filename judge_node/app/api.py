@@ -1,10 +1,17 @@
 import os
 import time
 from .utils import *
+from .models import *
 from meta.decorators import api, APIError, comments, errors, params, returns
 
 @api
 def submission(user_id, problem_id, code):
+    # 找到该学生和该题
+    student = Student.objects.get(id=user_id)
+    problem = Problem.objects.get(id=problem_id)
+    subm = Submission.objects.create(student=student, problem=problem)
+    subm.code = code
+
     # 把代码保存到本地（函数结束前记得删除）
     timestamp = str(int(time.time()))
     file_name = timestamp + "_" +str(user_id) + "_" + str(problem_id)  # 不带路径，不带.c的纯文件名
@@ -18,18 +25,33 @@ def submission(user_id, problem_id, code):
     try:
         compile_code(file_name)
     except Exception as e:
+        # 若编译失败，记录提交记录，返回失败原因
+        subm.if_compile = False
+        subm.compile_error = str(e)
         return str(e)
 
-    # 若编译失败，记录提交记录，返回失败原因
-
+    subm.if_compile = True
 
     # 根据题号从数据库中获得测试用例
-    result = run_code(file_name)
+    ts = Testcase.objects.filter(problem__id=problem_id)
+    testcase = []
+    for t in ts:
+        i = t.input
+        o = t.output
+        testcase.append([i, o])
 
-    # 依次运行每一个测试用例，对比输入输出
-    # 一旦发现输入输出不同则退出循环，记录提交记录，返回错误的输出和应有输出
+    # result存在，即代表有错误
+    result = run_code(testcase, file_name)
 
-    # 若全部运行通过，记录运行时间
+    if result:
+        # 若失败，记录对比结果
+        subm.if_run = False
+        subm.run_error = str(result)
+    else:
+        # 若全部运行通过，记录运行时间
+        subm.if_run = True
+
+    subm.save()
 
     # 返回结果
     return result
