@@ -45,6 +45,7 @@ class Problem(models.Model):
             'difficulty': self.difficulty
         }
 
+
 class Testcase(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = '测试用例'
@@ -69,6 +70,14 @@ class Teacher(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
+    @property
+    def json(self):
+        return {
+            'id': self.id,
+            'tno': self.tno,
+            'name': self.name,
+        }
+
 
 class TClass(models.Model):
     class Meta:
@@ -79,6 +88,14 @@ class TClass(models.Model):
 
     create_time = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+
+    @property
+    def json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'teacher': self.teacher.json,
+        }
 
 
 class Student(models.Model):
@@ -92,6 +109,15 @@ class Student(models.Model):
 
     create_time = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+
+    @property
+    def json(self):
+        return {
+            'id': self.id,
+            'sno': self.sno,
+            'name': self.name,
+            'tclass': self.tclass.json,
+        }
 
 
 class Submission(models.Model):

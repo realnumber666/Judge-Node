@@ -1,6 +1,12 @@
 import os
+import jwt
+import datetime
 import subprocess
 from meta.decorators import APIError
+
+# jwt token使用的参数
+secret_key = 'dian_oj_sk'
+algorithm = 'HS256'
 
 base_dir = "./"
 dir_work = "./submission_code/"
@@ -46,7 +52,37 @@ def run_code(ts, file_name):
         return None
 
 
+# 生成token
+def create_token(user_id, role):
+    payload = {
+        'iat': datetime.datetime.utcnow(), # 发布时间
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1), # 一天后过期
+        'data': {
+            'role': role,
+            'user_id': user_id
+        }
+    }
 
-# if __name__ == '__main__':
-#     compile_code()
-#     run_code()
+    token = jwt.encode(payload, secret_key, algorithm=algorithm)
+    token = token.decode("utf-8")
+
+    return token
+
+
+# 校验token
+def check_token(token):
+    """
+    返回值中的role可能为"student", "teacher"
+    """
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+    except Exception as e:
+        # 内容被篡改、过期、算法不正确、密钥不正确 => 抛出异常
+        raise str(e)
+    else:
+        res = {
+            'username': payload['data']['username'],
+            'role': payload['data']['role']
+        }
+
+        return res

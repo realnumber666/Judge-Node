@@ -4,9 +4,7 @@ from .utils import *
 from .models import *
 from meta.decorators import api, APIError, comments, errors, params, returns
 
-"""
-判题模块
-"""
+"""Judge"""
 @api
 def submit(user_id, problem_id, code):
     # TODO 校验user_id
@@ -61,6 +59,7 @@ def submit(user_id, problem_id, code):
     return result
 
 
+"""Problem"""
 @api
 def problem_list(user_id, tag=''):
     # TODO: 校验user_id
@@ -83,12 +82,15 @@ def problem(user_id, problem_id):
 
     return p.json
 
+
+"""Submission"""
 @api
 def submission_list(user_id):
     student = Student.objects.get(id=user_id)
     submissions = Submission.objects.filter(student=student)
 
     return [subm.list_view for subm in submissions]
+
 
 @api
 def submission(user_id, submission_id):
@@ -102,3 +104,35 @@ def submission(user_id, submission_id):
         return subm.json
     else:
         return_api_error(1001)
+
+
+"""General User"""
+@api
+def create_teacher(tno, name, pwd):
+    t = Teacher.objects.create(tno=tno,name=name,password=pwd)
+
+    # TODO create token then return it
+    return t.json
+
+
+@api
+def create_class(name, teacher_id):
+    t = Teacher.objects.get(id=teacher_id)
+    c = TClass.objects.create(name=name, teacher=t)
+
+    return c.json
+
+
+@api
+def create_student(sno, name, class_id, pwd):
+    c = TClass.objects.get(id=class_id)
+    s = Student.objects.create(sno=sno, name=name, tclass=c, password=pwd)
+
+    # TODO create token then return it
+    return s.json
+
+
+@api
+def login(type, no, pwd):
+
+    return 1
