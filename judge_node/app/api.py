@@ -61,7 +61,7 @@ def submit(user_id, problem_id, code):
 
 """Problem"""
 @api
-def problem_list(user_id, tag=''):
+def problem_list(user_id=1, tag=''):
     # TODO: 校验user_id
     if not tag:
         p_list = Problem.objects.all()
@@ -85,9 +85,11 @@ def problem(user_id, problem_id):
 
 """Submission"""
 @api
-def submission_list(user_id):
+def submission_list(user_id='', problem_id=''):
     student = Student.objects.get(id=user_id)
-    submissions = Submission.objects.filter(student=student)
+    problem = Problem.objects.get(id=problem_id)
+
+    submissions = Submission.objects.filter(student=student, problem=problem)
 
     return [subm.list_view for subm in submissions]
 
@@ -133,6 +135,27 @@ def create_student(sno, name, class_id, pwd):
 
 
 @api
-def login(type, no, pwd):
+def login(_type, no, pwd):
+    if _type == "student":
+        student = Student.objects.filter(sno=no)
+        if not student.exists():
+            return_api_error(3001)
+        else:
+            student = student.first()
+            if pwd == student.password:
+                token = create_token(student.id, 'student')
+                return token
+            else:
+                return_api_error(1004)
 
-    return 1
+    if _type == "teacher":
+        teacher = Teacher.objects.filter(tno=no)
+        if not teacher.exists():
+            return_api_error(2001)
+        else:
+            teacher = teacher.first()
+            if pwd == teacher.password:
+                token = create_token(teacher.id, "teacher")
+                return token
+            else:
+                return_api_error(1004)

@@ -160,9 +160,12 @@ class Submission(models.Model):
     def list_view(self):
         return {
             'id': self.id,
-            'problem': [self.problem.id, self.problem.title], # return id, title of problem
-            'if_compile': self.if_compile,
-            'if_run': self.if_run,
-            'create_time': self.create_time,
-            'run_seconds': self.run_seconds
+            'student': self.student.id,
+            'problem_id': self.problem.id, # return id, title of problem
+            'title': self.problem.title,
+            'if_compile': 'PASSED' if self.if_compile else 'FAILED',
+            'if_run': 'PASSED' if self.if_run else 'FAILED',
+            'create_time': self.create_time,    
+            'run_seconds': self.run_seconds,
+            'memory_used': self.memory_used,
         }

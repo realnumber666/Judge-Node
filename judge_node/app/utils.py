@@ -13,6 +13,13 @@ dir_work = "./submission_code/"
 
 api_error_dictionary = {
     1001: "内容不存在",
+    1002: "权限不足",
+    1003: "Token校验失败",
+    1004: "密码错误",
+
+    2001: "该老师账号不存在",
+
+    3001: "该学生账号不存在",
 }
 
 
@@ -81,8 +88,46 @@ def check_token(token):
         raise str(e)
     else:
         res = {
-            'username': payload['data']['username'],
+            'user_id': payload['data']['user_id'],
             'role': payload['data']['role']
         }
 
         return res
+
+
+def check_teacher_by_token(token):
+    from .models import Teacher
+
+    try:
+        res = check_token(token)
+    except Exception as e:
+        return_api_error(1003)
+
+    if res['role'] != 'teacher':
+        return_api_error(1002)
+
+    try:
+        teacher = Teacher.objects.get(id=res['user_id'])
+    except Exception as e:
+        return_api_error(2001)
+
+    return teacher
+
+
+def check_student_by_token(token):
+    from .models import Student
+
+    try:
+        res = check_token(token)
+    except Exception as e:
+        return_api_error(1003)
+
+    if res['role'] != 'student':
+        return_api_error(1002)
+
+    try:
+        student = Student.objects.get(id=res['user_id'])
+    except Exception as e:
+        return_api_error(2001)
+
+    return student
